@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 
+using namespace std;
+
 struct KeyIDSettings
 {
 	wstring license;
@@ -11,4 +13,5 @@ struct KeyIDSettings
 	double thresholdConfidence;
 	double thresholdFidelity;
 	int timeout;
+	bool strictSSL;
 };
