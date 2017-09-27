@@ -2,14 +2,7 @@
 #include "afxwin.h"
 #include <string>
 #include <cpprest/http_client.h>
-#include <cpprest/filestream.h>
 #include <cpprest/json.h>
-
-using namespace std;
-using namespace web;
-using namespace web::http;
-using namespace web::http::client;
-using namespace concurrency::streams;
 
 /// <summary>
 ///  KeyID services REST client.
@@ -17,22 +10,22 @@ using namespace concurrency::streams;
 class KeyIDService
 {
 public:
-	KeyIDService(wstring url, wstring license, int timeoutMs = 1000);
+	KeyIDService(std::wstring url, std::wstring license, int timeoutMs = 1000);
 	~KeyIDService();
-	pplx::task<http_response> typingMistake(wstring entityID, wstring mistype = L"", wstring sessionID = L"", wstring source = L"", wstring action = L"", wstring tmplate = L"", wstring page = L"");
-	pplx::task<http_response> evaluateSample(wstring entityID, wstring tsData, wstring nonce);
-	pplx::task<http_response> nonce(long long nonceTime);
-	pplx::task<http_response> removeToken(wstring entityID, wstring tsData);
-	pplx::task<http_response> removeProfile(wstring entityID, wstring token);
-	pplx::task<http_response> saveToken(wstring entityID, wstring tsData);
-	pplx::task<http_response> saveProfile(wstring entityID, wstring tsData, wstring code = L"");
+	pplx::task<web::http::http_response> TypingMistake(std::wstring entityID, std::wstring mistype = L"", std::wstring sessionID = L"", std::wstring source = L"", std::wstring action = L"", std::wstring tmplate = L"", std::wstring page = L"");
+	pplx::task<web::http::http_response> EvaluateSample(std::wstring entityID, std::wstring tsData, std::wstring nonce);
+	pplx::task<web::http::http_response> Nonce(long long nonceTime);
+	pplx::task<web::http::http_response> RemoveToken(std::wstring entityID, std::wstring tsData);
+	pplx::task<web::http::http_response> RemoveProfile(std::wstring entityID, std::wstring token);
+	pplx::task<web::http::http_response> SaveToken(std::wstring entityID, std::wstring tsData);
+	pplx::task<web::http::http_response> SaveProfile(std::wstring entityID, std::wstring tsData, std::wstring code = L"");
 
 private:
-	wstring url;
-	wstring license;
-	http_client* client;
+	std::wstring url;
+	std::wstring license;
+	web::http::client::http_client* client;
 
-	json::value encodeJSONProperties(json::value obj);
-	pplx::task<http_response> post(wstring path, json::value data);
-	pplx::task<http_response> get(wstring path, json::value data);
+	web::json::value encodeJSONProperties(web::json::value obj);
+	pplx::task<web::http::http_response> Post(std::wstring path, web::json::value data);
+	pplx::task<web::http::http_response> Get(std::wstring path, web::json::value data);
 };
