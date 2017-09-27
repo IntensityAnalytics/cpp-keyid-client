@@ -3,15 +3,7 @@
 #include "KeyIDSettings.h"
 #include <string>
 #include <cpprest/http_client.h>
-#include <cpprest/filestream.h>
 #include <cpprest/json.h>
-#include <chrono>
-
-using namespace std;
-using namespace web;
-using namespace web::http;
-using namespace web::http::client;
-using namespace concurrency::streams;
 
 /// <summary>
 /// KeyID client.
@@ -21,16 +13,17 @@ class KeyIDClient
 public:
 	KeyIDClient(KeyIDSettings settings);
 	~KeyIDClient();
-	pplx::task<json::value> saveProfile(wstring entityID, wstring tsData, wstring sessionID = L"");
-	pplx::task<json::value> removeProfile(wstring entityID, wstring tsData = L"", wstring sessionID = L"");
-	pplx::task<json::value> evaluateProfile(wstring entityID, wstring tsData, wstring sessionID = L"");
-	pplx::task<json::value> loginPassiveEnrollment(wstring entityID, wstring tsData, wstring sessionID = L"");
+	pplx::task<web::json::value> SaveProfile(std::wstring entityID, std::wstring tsData, std::wstring sessionID = L"");
+	pplx::task<web::json::value> RemoveProfile(std::wstring entityID, std::wstring tsData = L"", std::wstring sessionID = L"");
+	pplx::task<web::json::value> EvaluateProfile(std::wstring entityID, std::wstring tsData, std::wstring sessionID = L"");
+	pplx::task<web::json::value> LoginPassiveEnrollment(std::wstring entityID, std::wstring tsData, std::wstring sessionID = L"");
 
 private:
 	KeyIDService *service;
 	KeyIDSettings settings;
-	bool evalThreshold(double confidence, double fidelity);
-	bool alphaToBool(wstring input);
-	long long dotNetTicks();
-	json::value parseResponse(const http_response& response);
+
+	bool EvalThreshold(double confidence, double fidelity);
+	bool AlphaToBool(std::wstring input);
+	long long DotNetTicks();
+	web::json::value ParseResponse(const web::http::http_response& response);
 };

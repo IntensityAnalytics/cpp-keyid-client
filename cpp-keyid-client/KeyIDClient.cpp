@@ -1,4 +1,12 @@
 #include "KeyIDClient.h"
+#include <cpprest/filestream.h>
+#include <chrono>
+
+using namespace std;
+using namespace web;
+using namespace web::http;
+using namespace web::http::client;
+using namespace concurrency::streams;
 
 /// <summary>
 /// KeyID services client.
@@ -25,28 +33,28 @@ KeyIDClient::~KeyIDClient()
 /// <param name="tsData">Typing sample data to save.</param>
 /// <param name="sessionID">Session identifier for logging purposes.</param>
 /// <returns>JSON value (task)</returns>
-pplx::task<json::value> KeyIDClient::saveProfile(wstring entityID, wstring tsData, wstring sessionID)
+pplx::task<web::json::value> KeyIDClient::SaveProfile(std::wstring entityID, std::wstring tsData, std::wstring sessionID)
 {
 	// try to save profile without a token
-	return service->saveProfile(entityID, tsData)
+	return service->SaveProfile(entityID, tsData)
 	.then([=](http_response response)
 	{
-		json::value data = parseResponse(response);
+		json::value data = ParseResponse(response);
 
 		// token is required
 		if (wcscmp(data[L"Error"].as_string().c_str(), L"") != 0)
 		{
 			// get a save token
-			return service->saveToken(entityID, tsData)
+			return service->SaveToken(entityID, tsData)
 			.then([=](http_response response)
 			{
-				json::value data = parseResponse(response);
+				json::value data = ParseResponse(response);
 				// try to save profile with a token
-				return service->saveProfile(entityID, tsData, data[L"Token"].as_string());
+				return service->SaveProfile(entityID, tsData, data[L"Token"].as_string());
 			})
 			.then([=](http_response response)
 			{
-				json::value data = parseResponse(response);
+				json::value data = ParseResponse(response);
 				//todo this isn't a task?
 				return data;
 			});
@@ -63,18 +71,18 @@ pplx::task<json::value> KeyIDClient::saveProfile(wstring entityID, wstring tsDat
 /// <param name="tsData">Optional typing sample for removal authorization.</param>
 /// <param name="sessionID">Session identifier for logging purposes.</param>
 /// <returns>JSON value (task)</returns>
-pplx::task<json::value> KeyIDClient::removeProfile(wstring entityID, wstring tsData, wstring sessionID)
+pplx::task<web::json::value> KeyIDClient::RemoveProfile(std::wstring entityID, std::wstring tsData, std::wstring sessionID)
 {
 	// get a removal token
-	return service->removeToken(entityID, tsData).then([=](http_response response)
+	return service->RemoveToken(entityID, tsData).then([=](http_response response)
 	{
-		json::value data = parseResponse(response);
+		json::value data = ParseResponse(response);
 
 		// remove profile
-		return service->removeProfile(entityID, data[L"Token"].as_string())
+		return service->RemoveProfile(entityID, data[L"Token"].as_string())
 		.then([=](http_response response)
 		{
-			json::value data = parseResponse(response);
+			json::value data = ParseResponse(response);
 			return pplx::task_from_result(data);
 		});
 	});
@@ -87,18 +95,18 @@ pplx::task<json::value> KeyIDClient::removeProfile(wstring entityID, wstring tsD
 /// <param name="tsData">Typing sample to evaluate against profile.</param>
 /// <param name="sessionID">Session identifier for logging purposes.</param>
 /// <returns></returns>
-pplx::task<json::value> KeyIDClient::evaluateProfile(wstring entityID, wstring tsData, wstring sessionID)
+pplx::task<web::json::value> KeyIDClient::EvaluateProfile(std::wstring entityID, std::wstring tsData, std::wstring sessionID)
 {
-	long long nonceTime = dotNetTicks();
+	long long nonceTime = DotNetTicks();
 
-	return service->nonce(nonceTime)
+	return service->Nonce(nonceTime)
 	.then([=](http_response response)
 	{
-		return service->evaluateSample(entityID, tsData, response.extract_string().get());
+		return service->EvaluateSample(entityID, tsData, response.extract_string().get());
 	})
 	.then([=](http_response response)
 	{
-		json::value data = parseResponse(response);
+		json::value data = ParseResponse(response);
 
 		// return early if profile does not exist
 		if (wcscmp(data[L"Error"].as_string().c_str(), L"EntityID does not exist.") == 0)
@@ -107,8 +115,8 @@ pplx::task<json::value> KeyIDClient::evaluateProfile(wstring entityID, wstring t
 		}
 
 		// coerce string to boolean
-		data[L"Match"] = json::value::boolean(alphaToBool(data[L"Match"].as_string()));
-		data[L"IsReady"] = json::value::boolean(alphaToBool(data[L"IsReady"].as_string()));
+		data[L"Match"] = json::value::boolean(AlphaToBool(data[L"Match"].as_string()));
+		data[L"IsReady"] = json::value::boolean(AlphaToBool(data[L"IsReady"].as_string()));
 
 		// set match to true and return early if using passive validation
 		if (settings.passiveValidation)
@@ -119,7 +127,7 @@ pplx::task<json::value> KeyIDClient::evaluateProfile(wstring entityID, wstring t
 		// evaluate match value using custom threshold if enabled
 		else if (settings.customThreshold)
 		{
-			data[L"Match"] = json::value::boolean(evalThreshold(data[L"Confidence"].as_double(), data[L"Fidelity"].as_double()));
+			data[L"Match"] = json::value::boolean(EvalThreshold(data[L"Confidence"].as_double(), data[L"Fidelity"].as_double()));
 		}
 
 		return data;
@@ -133,9 +141,9 @@ pplx::task<json::value> KeyIDClient::evaluateProfile(wstring entityID, wstring t
 /// <param name="tsData">Typing sample to evaluate and save.</param>
 /// <param name="sessionID">Session identifier for logging purposes.</param>
 /// <returns></returns>
-pplx::task<json::value> KeyIDClient::loginPassiveEnrollment(wstring entityID, wstring tsData, wstring sessionID)
+pplx::task<web::json::value> KeyIDClient::LoginPassiveEnrollment(std::wstring entityID, std::wstring tsData, std::wstring sessionID)
 {
-	return evaluateProfile(entityID, tsData, sessionID)
+	return EvaluateProfile(entityID, tsData, sessionID)
 	.then([=](json::value data)
 	{
 		// in base case that no profile exists save profile async and return early
@@ -143,7 +151,7 @@ pplx::task<json::value> KeyIDClient::loginPassiveEnrollment(wstring entityID, ws
 			wcscmp(data[L"Error"].as_string().c_str(), L"The profile has too little data for a valid evaluation.") == 0 ||
 			wcscmp(data[L"Error"].as_string().c_str(), L"The entry varied so much from the model, no evaluation is possible.") == 0)
 		{
-			return saveProfile(entityID, tsData, sessionID)
+			return SaveProfile(entityID, tsData, sessionID)
 			.then([=](json::value saveData)
 			{
 				json::value evalData = data;
@@ -157,7 +165,7 @@ pplx::task<json::value> KeyIDClient::loginPassiveEnrollment(wstring entityID, ws
 		// if profile is not ready save profile async and return early
 		if (data[L"IsReady"].as_bool() == false)
 		{
-			return saveProfile(entityID, tsData, sessionID)
+			return SaveProfile(entityID, tsData, sessionID)
 			.then([=](json::value saveData)
 			{
 				json::value evalData = data;
@@ -177,7 +185,7 @@ pplx::task<json::value> KeyIDClient::loginPassiveEnrollment(wstring entityID, ws
 /// <param name="confidence">KeyID evaluation confidence.</param>
 /// <param name="fidelity">KeyID evaluation fidelity.</param>
 /// <returns>Whether confidence and fidelity meet thresholds.</returns>
-bool KeyIDClient::evalThreshold(double confidence, double fidelity)
+bool KeyIDClient::EvalThreshold(double confidence, double fidelity)
 {
 	if (confidence >= settings.thresholdConfidence &&
 		fidelity >= settings.thresholdFidelity)
@@ -195,7 +203,7 @@ bool KeyIDClient::evalThreshold(double confidence, double fidelity)
 /// </summary>
 /// <param name="input">String to convert to boolean.</param>
 /// <returns>Boolean value.</returns>
-bool KeyIDClient::alphaToBool(wstring input)
+bool KeyIDClient::AlphaToBool(std::wstring input)
 {
 	std::transform(input.begin(), input.end(), input.begin(), ::toupper);
 
@@ -209,7 +217,7 @@ bool KeyIDClient::alphaToBool(wstring input)
 /// Converts current time to Microsoft .Net 'ticks'. A tick is 100 nanoseconds.
 /// </summary>
 /// <returns>Current time in 'ticks'.</returns>
-long long KeyIDClient::dotNetTicks()
+long long KeyIDClient::DotNetTicks()
 {
 	const long long EPOCH_OFFSET = 621355968000000000;
 	const long MS_PER_TICK = 10000;
@@ -223,7 +231,7 @@ long long KeyIDClient::dotNetTicks()
 /// </summary>
 /// <param name="response">HTTP response</param>
 /// <returns>JSON value</returns>
-json::value KeyIDClient::parseResponse(const http_response& response)
+web::json::value KeyIDClient::ParseResponse(const web::http::http_response& response)
 {
 	if (response.status_code() == status_codes::OK)
 	{

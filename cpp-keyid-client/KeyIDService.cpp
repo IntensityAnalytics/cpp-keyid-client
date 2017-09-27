@@ -1,4 +1,11 @@
 #include "KeyIDService.h"
+#include <cpprest/filestream.h>
+
+using namespace std;
+using namespace web;
+using namespace web::http;
+using namespace web::http::client;
+using namespace concurrency::streams;
 
 /// <summary>
 /// KeyID services REST client.
@@ -6,7 +13,7 @@
 /// <param name="url">KeyID services URL.</param>
 /// <param name="license">KeyID services license key.</param>
 /// <param name="timeoutMs">REST web service timeout.</param>
-KeyIDService::KeyIDService(wstring url, wstring license, int timeoutMs)
+KeyIDService::KeyIDService(std::wstring url, std::wstring license, int timeoutMs)
 {
 	this->url = url;
 	this->license = license;
@@ -26,7 +33,7 @@ KeyIDService::~KeyIDService()
 /// </summary>
 /// <param name="obj">JSON object</param>
 /// <returns>URL encoded JSON object</returns>
-json::value KeyIDService::encodeJSONProperties(json::value obj)
+web::json::value KeyIDService::encodeJSONProperties(web::json::value obj)
 {
 	json::value objEncoded;
 
@@ -45,7 +52,7 @@ json::value KeyIDService::encodeJSONProperties(json::value obj)
 /// <param name="path">REST URI suffix.</param>
 /// <param name="data">Object that will be converted to JSON and sent in POST request.</param>
 /// <returns>REST request and response.</returns>
-pplx::task<http_response> KeyIDService::post(wstring path, json::value data)
+pplx::task<web::http::http_response> KeyIDService::Post(std::wstring path, web::json::value data)
 {
 	data[L"License"] = json::value::string(license);
 	json::value dataEncoded = encodeJSONProperties(data);
@@ -63,7 +70,7 @@ pplx::task<http_response> KeyIDService::post(wstring path, json::value data)
 /// <param name="path">REST URI suffix.</param>
 /// <param name="data">Object that will be converted to URL parameters and sent in GET request.</param>
 /// <returns>REST request and response.</returns>
-pplx::task<http_response> KeyIDService::get(wstring path, json::value data)
+pplx::task<web::http::http_response> KeyIDService::Get(std::wstring path, web::json::value data)
 {
 	uri_builder params(path);
 
@@ -87,7 +94,7 @@ pplx::task<http_response> KeyIDService::get(wstring path, json::value data)
 /// <param name="tmplate"></param>
 /// <param name="page"></param>
 /// <returns>REST request and response.</returns>
-pplx::task<http_response> KeyIDService::typingMistake(wstring entityID, wstring mistype, wstring sessionID, wstring source, wstring action, wstring tmplate, wstring page )
+pplx::task<web::http::http_response> KeyIDService::TypingMistake(std::wstring entityID, std::wstring mistype, std::wstring sessionID, std::wstring source, std::wstring action, std::wstring tmplate, std::wstring page )
 {
 	json::value data;
 	data[L"EntityID"] = json::value::string(entityID);
@@ -98,7 +105,7 @@ pplx::task<http_response> KeyIDService::typingMistake(wstring entityID, wstring 
 	data[L"Template"] = json::value::string(tmplate);
 	data[L"Page"] = json::value::string(page);
 
-	return post(L"/typingmistake", data);
+	return Post(L"/typingmistake", data);
 }
 
 /// <summary>
@@ -108,7 +115,7 @@ pplx::task<http_response> KeyIDService::typingMistake(wstring entityID, wstring 
 /// <param name="tsData">Typing sample to evaluate against profile.</param>
 /// <param name="nonce">Evaluation nonce.</param>
 /// <returns>REST request and response.</returns>
-pplx::task<http_response> KeyIDService::evaluateSample(wstring entityID, wstring tsData, wstring nonce)
+pplx::task<web::http::http_response> KeyIDService::EvaluateSample(std::wstring entityID, std::wstring tsData, std::wstring nonce)
 {
 	json::value data;
 	data[L"EntityID"] = json::value::string(entityID);
@@ -117,7 +124,7 @@ pplx::task<http_response> KeyIDService::evaluateSample(wstring entityID, wstring
 	data[L"Return"] = json::value::string(L"JSON");
 	data[L"Statistics"] = json::value::string(L"extended");
 
-	return post(L"/evaluate", data);
+	return Post(L"/evaluate", data);
 }
 
 /// <summary>
@@ -125,12 +132,12 @@ pplx::task<http_response> KeyIDService::evaluateSample(wstring entityID, wstring
 /// </summary>
 /// <param name="nonceTime">Current time in .Net ticks.</param>
 /// <returns>REST request and response.</returns>
-pplx::task<http_response> KeyIDService::nonce(long long nonceTime)
+pplx::task<web::http::http_response> KeyIDService::Nonce(long long nonceTime)
 {
 	json::value data;
 	data[L"type"] = json::value::string(L"nonce");
 	wstring path = L"/token/" + to_wstring(nonceTime);
-	return get(path, data);
+	return Get(path, data);
 }
 
 /// <summary>
@@ -139,13 +146,13 @@ pplx::task<http_response> KeyIDService::nonce(long long nonceTime)
 /// <param name="entityID">Profile name.</param>
 /// <param name="tsData">Optional typing sample for removal authorization.</param>
 /// <returns>REST request and response.</returns>
-pplx::task<http_response> KeyIDService::removeToken(wstring entityID, wstring tsData)
+pplx::task<web::http::http_response> KeyIDService::RemoveToken(std::wstring entityID, std::wstring tsData)
 {
 	json::value data;
 	data[L"Type"] = json::value::string(L"remove");
 	data[L"Return"] = json::value::string(L"value");
 
-	return get(L"/token/" + entityID, data)
+	return Get(L"/token/" + entityID, data)
 	.then([=](http_response response)
 	{
 		json::value postData;
@@ -156,7 +163,7 @@ pplx::task<http_response> KeyIDService::removeToken(wstring entityID, wstring ts
 		postData[L"Type"] = json::value::string(L"remove");
 		postData[L"Return"] = json::value::string(L"JSON");
 
-		return post(L"/token", postData);
+		return Post(L"/token", postData);
 	});
 }
 
@@ -166,7 +173,7 @@ pplx::task<http_response> KeyIDService::removeToken(wstring entityID, wstring ts
 /// <param name="entityID">Profile name.</param>
 /// <param name="token">Profile removal security token.</param>
 /// <returns>REST request and response.</returns>
-pplx::task<http_response> KeyIDService::removeProfile(wstring entityID, wstring token)
+pplx::task<web::http::http_response> KeyIDService::RemoveProfile(std::wstring entityID, std::wstring token)
 {
 	json::value data;
 	data[L"EntityID"] = json::value::string(entityID);
@@ -174,7 +181,7 @@ pplx::task<http_response> KeyIDService::removeProfile(wstring entityID, wstring 
 	data[L"Action"] = json::value::string(L"remove");
 	data[L"Return"] = json::value::string(L"JSON");
 
-	return post(L"/profile", data);
+	return Post(L"/profile", data);
 }
 
 /// <summary>
@@ -183,13 +190,13 @@ pplx::task<http_response> KeyIDService::removeProfile(wstring entityID, wstring 
 /// <param name="entityID">Profile name.</param>
 /// <param name="tsData">Optional typing sample for save authorization.</param>
 /// <returns>REST request and response.</returns>
-pplx::task<http_response> KeyIDService::saveToken(wstring entityID, wstring tsData)
+pplx::task<web::http::http_response> KeyIDService::SaveToken(std::wstring entityID, std::wstring tsData)
 {
 	json::value data;
 	data[L"Type"] = json::value::string(L"remove");
 	data[L"Return"] = json::value::string(L"value");
 
-	return get(L"/token/" + entityID, data)
+	return Get(L"/token/" + entityID, data)
 	.then([=](http_response response)
 	{
 		json::value postData;
@@ -200,7 +207,7 @@ pplx::task<http_response> KeyIDService::saveToken(wstring entityID, wstring tsDa
 		postData[L"Type"] = json::value::string(L"enrollment");
 		postData[L"Return"] = json::value::string(L"JSON");
 
-		return post(L"/token", postData);
+		return Post(L"/token", postData);
 	});
 }
 
@@ -211,7 +218,7 @@ pplx::task<http_response> KeyIDService::saveToken(wstring entityID, wstring tsDa
 /// <param name="tsData">Typing sample to save.</param>
 /// <param name="code">Profile save security token.</param>
 /// <returns>REST request and response.</returns>
-pplx::task<http_response> KeyIDService::saveProfile(wstring entityID, wstring tsData, wstring code)
+pplx::task<web::http::http_response> KeyIDService::SaveProfile(std::wstring entityID, std::wstring tsData, std::wstring code)
 {
 	json::value data;
 	data[L"EntityID"] = json::value::string(entityID);
@@ -223,5 +230,5 @@ pplx::task<http_response> KeyIDService::saveProfile(wstring entityID, wstring ts
 	if (wcscmp(code.c_str(), L"") == 0)
 		data[L"Code"] = json::value::string(code);
 
-	return post(L"/profile", data);
+	return Post(L"/profile", data);
 }
