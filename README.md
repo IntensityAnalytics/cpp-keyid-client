@@ -12,15 +12,14 @@ The keyid-client library provides several asynchronous functions that return Cas
 
 ```cpp
 #include "..\cpp-keyid-client\KeyIDClient.h"
-#include <cpprest/json.h>
 
 using namespace std;
-using namespace web
+using namespace web;
 
 void main(){
 	KeyIDSettings settings;
 	settings.license = L"yourlicensekey";
-	settings.url = L""https://keyidservicesurl";
+	settings.url = L"https://keyidservicesurl";
 	settings.passiveEnrollment = false;
 	settings.passiveValidation = false;
 	settings.customThreshold = false;
@@ -30,16 +29,16 @@ void main(){
 
 	KeyIDClient client = KeyIDClient(settings);
 
-	wstring entityID = "someusername";
-	wstring tsData = "'tsdata captured from a textbox using keyid browser javscript library";
+	wstring entityID = L"someusername";
+	wstring tsData = L"tsdata captured from a textbox using keyid browser javscript library";
 
-	client.removeProfile(entityID)
+	client.RemoveProfile(entityID)
 	.wait();
 
-	client.saveProfile(entityID, tsData)
+	client.SaveProfile(entityID, tsData)
 	.wait();
 
-	client.evaluateProfile(entityID, tsData)
+	client.EvaluateProfile(entityID, tsData)
 	.then([](json::value data) {
 		wstring Match = data.at(L"Match").as_string();
 		wstring Confidence = data.at(L"Confidence").as_string();
