@@ -19,7 +19,7 @@ public:
 	pplx::task<web::json::value> LoginPassiveEnrollment(std::wstring entityID, std::wstring tsData, std::wstring sessionID = L"");
 
 private:
-	KeyIDService *service;
+	std::unique_ptr<KeyIDService> service;
 	KeyIDSettings settings;
 
 	bool EvalThreshold(double confidence, double fidelity);

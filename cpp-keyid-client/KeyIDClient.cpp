@@ -15,7 +15,7 @@ using namespace concurrency::streams;
 KeyIDClient::KeyIDClient(KeyIDSettings settings)
 {
 	this->settings = settings;
-	this->service = new KeyIDService(settings.url, settings.license, settings.timeout);
+	this->service = make_unique<KeyIDService>(settings.url, settings.license, settings.timeout);
 }
 
 /// <summary>
@@ -23,7 +23,6 @@ KeyIDClient::KeyIDClient(KeyIDSettings settings)
 /// </summary>
 KeyIDClient::~KeyIDClient()
 {
-	delete service;
 }
 
 /// <summary>
