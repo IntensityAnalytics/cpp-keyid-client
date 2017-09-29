@@ -15,11 +15,12 @@ using namespace concurrency::streams;
 KeyIDClient::KeyIDClient(KeyIDSettings settings)
 {
 	this->settings = settings;
-	this->service = make_unique<KeyIDService>(settings.url, settings.license, settings.timeout);
+	this->service = make_shared<KeyIDService>(settings.url, settings.license, settings.timeout);
 }
 
 KeyIDClient::KeyIDClient()
 {
+	this->service = make_shared<KeyIDService>(settings.url, settings.license, settings.timeout);
 }
 
 /// <summary>
