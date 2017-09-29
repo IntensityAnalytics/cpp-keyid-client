@@ -12,7 +12,11 @@ class KeyIDClient
 {
 public:
 	KeyIDClient(KeyIDSettings settings);
+	KeyIDClient();
 	~KeyIDClient();
+	KeyIDSettings GetSettings();
+	void SetSettings(KeyIDSettings settings);
+
 	pplx::task<web::json::value> SaveProfile(std::wstring entityID, std::wstring tsData, std::wstring sessionID = L"");
 	pplx::task<web::json::value> RemoveProfile(std::wstring entityID, std::wstring tsData = L"", std::wstring sessionID = L"");
 	pplx::task<web::json::value> EvaluateProfile(std::wstring entityID, std::wstring tsData, std::wstring sessionID = L"");

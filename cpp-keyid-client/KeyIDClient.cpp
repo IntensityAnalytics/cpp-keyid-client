@@ -18,11 +18,25 @@ KeyIDClient::KeyIDClient(KeyIDSettings settings)
 	this->service = make_unique<KeyIDService>(settings.url, settings.license, settings.timeout);
 }
 
+KeyIDClient::KeyIDClient()
+{
+}
+
 /// <summary>
 /// KeyID client destructor.
 /// </summary>
 KeyIDClient::~KeyIDClient()
 {
+}
+
+KeyIDSettings KeyIDClient::GetSettings()
+{
+	return settings;
+}
+
+void KeyIDClient::SetSettings(KeyIDSettings settings)
+{
+	this->settings = settings;
 }
 
 /// <summary>
