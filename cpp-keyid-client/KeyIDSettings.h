@@ -4,7 +4,7 @@
 struct KeyIDSettings
 {
 	std::wstring license = L"";
-	std::wstring url = L"";
+	std::wstring url = L"http://invalid.invalid";
 	bool passiveValidation = false;
 	bool passiveEnrollment = false;
 	bool customThreshold = false;

@@ -56,7 +56,7 @@ pplx::task<web::json::value> KeyIDClient::SaveProfile(std::wstring entityID, std
 		json::value data = ParseResponse(response);
 
 		// token is required
-		if (wcscmp(data[L"Error"].as_string().c_str(), L"") != 0)
+		if (data[L"Error"].as_string() != L"")
 		{
 			// get a save token
 			return service->SaveToken(entityID, tsData)
@@ -123,7 +123,7 @@ pplx::task<web::json::value> KeyIDClient::EvaluateProfile(std::wstring entityID,
 		json::value data = ParseResponse(response);
 
 		// return early if profile does not exist
-		if (wcscmp(data[L"Error"].as_string().c_str(), L"EntityID does not exist.") == 0)
+		if (data[L"Error"].as_string() == L"EntityID does not exist.")
 		{
 			return data;
 		}
@@ -161,9 +161,9 @@ pplx::task<web::json::value> KeyIDClient::LoginPassiveEnrollment(std::wstring en
 	.then([=](json::value data)
 	{
 		// in base case that no profile exists save profile async and return early
-		if (wcscmp(data[L"Error"].as_string().c_str(), L"EntityID does not exist.") == 0 ||
-			wcscmp(data[L"Error"].as_string().c_str(), L"The profile has too little data for a valid evaluation.") == 0 ||
-			wcscmp(data[L"Error"].as_string().c_str(), L"The entry varied so much from the model, no evaluation is possible.") == 0)
+		if (data[L"Error"].as_string() == L"EntityID does not exist." ||
+			data[L"Error"].as_string() == L"The profile has too little data for a valid evaluation." ||
+			data[L"Error"].as_string() == L"The entry varied so much from the model, no evaluation is possible." == 0)
 		{
 			return SaveProfile(entityID, tsData, sessionID)
 			.then([=](json::value saveData)
@@ -221,7 +221,7 @@ bool KeyIDClient::AlphaToBool(std::wstring input)
 {
 	std::transform(input.begin(), input.end(), input.begin(), ::toupper);
 
-	if (wcscmp(input.c_str(), L"TRUE") == 0)
+	if (input == L"TRUE")
 		return true;
 	else
 		return false;

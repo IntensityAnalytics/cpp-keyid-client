@@ -227,7 +227,7 @@ pplx::task<web::http::http_response> KeyIDService::SaveProfile(std::wstring enti
 	data[L"Action"] = json::value::string(L"v2");
 	data[L"Statistics"] = json::value::string(L"extended");
 
-	if (wcscmp(code.c_str(), L"") == 0)
+	if (code == L"")
 		data[L"Code"] = json::value::string(code);
 
 	return Post(L"/profile", data);
