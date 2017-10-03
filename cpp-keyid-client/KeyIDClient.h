@@ -21,6 +21,7 @@ public:
 	pplx::task<web::json::value> RemoveProfile(std::wstring entityID, std::wstring tsData = L"", std::wstring sessionID = L"");
 	pplx::task<web::json::value> EvaluateProfile(std::wstring entityID, std::wstring tsData, std::wstring sessionID = L"");
 	pplx::task<web::json::value> LoginPassiveEnrollment(std::wstring entityID, std::wstring tsData, std::wstring sessionID = L"");
+	pplx::task<web::json::value> GetProfileInfo(std::wstring entityID);
 
 private:
 	std::shared_ptr<KeyIDService> service;

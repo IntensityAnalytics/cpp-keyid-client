@@ -232,3 +232,15 @@ pplx::task<web::http::http_response> KeyIDService::SaveProfile(std::wstring enti
 
 	return Post(L"/profile", data);
 }
+
+/// <summary>
+/// Get profile information.
+/// </summary>
+/// <param name="entityID">Profile name.</param>
+/// <returns>REST request and response.</returns>
+pplx::task<web::http::http_response> KeyIDService::GetProfileInfo(std::wstring entityID)
+{
+	json::value data;
+	wstring path = L"/profile/" + entityID;
+	return Get(path, data);
+}

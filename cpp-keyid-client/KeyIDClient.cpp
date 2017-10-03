@@ -88,7 +88,8 @@ pplx::task<web::json::value> KeyIDClient::SaveProfile(std::wstring entityID, std
 pplx::task<web::json::value> KeyIDClient::RemoveProfile(std::wstring entityID, std::wstring tsData, std::wstring sessionID)
 {
 	// get a removal token
-	return service->RemoveToken(entityID, tsData).then([=](http_response response)
+	return service->RemoveToken(entityID, tsData)
+	.then([=](http_response response)
 	{
 		json::value data = ParseResponse(response);
 
@@ -190,6 +191,21 @@ pplx::task<web::json::value> KeyIDClient::LoginPassiveEnrollment(std::wstring en
 		}
 
 		//return pplx::create_task([data]()->json::value {return data; });
+		return pplx::task_from_result(data);
+	});
+}
+
+/// <summary>
+/// Returns profile information without modifying the profile.
+/// </summary>
+/// <param name="entityID">Profile to inspect.</param>
+/// <returns></returns>
+pplx::task<web::json::value> KeyIDClient::GetProfileInfo(std::wstring entityID)
+{
+	return service->GetProfileInfo(entityID)
+	.then([=](http_response response)
+	{
+		json::value data = ParseResponse(response);
 		return pplx::task_from_result(data);
 	});
 }
