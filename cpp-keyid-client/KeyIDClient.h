@@ -14,7 +14,7 @@ public:
 	KeyIDClient(KeyIDSettings settings);
 	KeyIDClient();
 	~KeyIDClient();
-	KeyIDSettings GetSettings();
+	const KeyIDSettings& GetSettings();
 	void SetSettings(KeyIDSettings settings);
 
 	pplx::task<web::json::value> SaveProfile(std::wstring entityID, std::wstring tsData, std::wstring sessionID = L"");

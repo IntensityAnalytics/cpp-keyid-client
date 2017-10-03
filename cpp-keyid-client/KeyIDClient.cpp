@@ -30,7 +30,7 @@ KeyIDClient::~KeyIDClient()
 {
 }
 
-KeyIDSettings KeyIDClient::GetSettings()
+const KeyIDSettings& KeyIDClient::GetSettings()
 {
 	return settings;
 }
@@ -163,13 +163,14 @@ pplx::task<web::json::value> KeyIDClient::LoginPassiveEnrollment(std::wstring en
 		// in base case that no profile exists save profile async and return early
 		if (data[L"Error"].as_string() == L"EntityID does not exist." ||
 			data[L"Error"].as_string() == L"The profile has too little data for a valid evaluation." ||
-			data[L"Error"].as_string() == L"The entry varied so much from the model, no evaluation is possible." == 0)
+			data[L"Error"].as_string() == L"The entry varied so much from the model, no evaluation is possible.")
 		{
 			return SaveProfile(entityID, tsData, sessionID)
 			.then([=](json::value saveData)
 			{
 				json::value evalData = data;
 				evalData[L"Match"] = json::value::boolean(true);
+				evalData[L"IsReady"] = json::value::boolean(false);
 				evalData[L"Confidence"] = json::value::number(100.0);
 				evalData[L"Fidelity"] = json::value::number(100.0);
 				return evalData;
