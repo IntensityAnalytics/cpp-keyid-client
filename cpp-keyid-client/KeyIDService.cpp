@@ -75,9 +75,11 @@ pplx::task<web::http::http_response> KeyIDService::Get(std::wstring path, web::j
 	uri_builder params(path);
 
 	// iterate json data and add to query parameters
-	for (auto &jsonTuple : data.as_object())
-	{
-		params.append_query(jsonTuple.first, jsonTuple.second.as_string());
+	if (!data.is_null()) {
+		for (auto &jsonTuple : data.as_object())
+		{
+			params.append_query(jsonTuple.first, jsonTuple.second.as_string());
+		}
 	}
 
 	return client->request(methods::GET, params.to_string());
