@@ -3,13 +3,13 @@
 
 struct KeyIDSettings
 {
-	std::wstring license;
-	std::wstring url;
-	bool passiveValidation;
-	bool passiveEnrollment;
-	bool customThreshold;
-	double thresholdConfidence;
-	double thresholdFidelity;
-	int timeout;
-	bool strictSSL;
+	std::wstring license = L"";
+	std::wstring url = L"http://invalid.invalid";
+	bool passiveValidation = false;
+	bool passiveEnrollment = false;
+	bool customThreshold = false;
+	double thresholdConfidence = 70.0;
+	double thresholdFidelity = 50.0;
+	int timeout = 0;
+	bool strictSSL = true;
 };

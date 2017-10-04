@@ -15,7 +15,12 @@ using namespace concurrency::streams;
 KeyIDClient::KeyIDClient(KeyIDSettings settings)
 {
 	this->settings = settings;
-	this->service = new KeyIDService(settings.url, settings.license, settings.timeout);
+	this->service = make_shared<KeyIDService>(settings.url, settings.license, settings.timeout);
+}
+
+KeyIDClient::KeyIDClient()
+{
+	this->service = make_shared<KeyIDService>(settings.url, settings.license, settings.timeout);
 }
 
 /// <summary>
@@ -23,7 +28,16 @@ KeyIDClient::KeyIDClient(KeyIDSettings settings)
 /// </summary>
 KeyIDClient::~KeyIDClient()
 {
-	delete service;
+}
+
+const KeyIDSettings& KeyIDClient::GetSettings()
+{
+	return settings;
+}
+
+void KeyIDClient::SetSettings(KeyIDSettings settings)
+{
+	this->settings = settings;
 }
 
 /// <summary>
@@ -42,7 +56,7 @@ pplx::task<web::json::value> KeyIDClient::SaveProfile(std::wstring entityID, std
 		json::value data = ParseResponse(response);
 
 		// token is required
-		if (wcscmp(data[L"Error"].as_string().c_str(), L"") != 0)
+		if (data[L"Error"].as_string() != L"")
 		{
 			// get a save token
 			return service->SaveToken(entityID, tsData)
@@ -74,7 +88,8 @@ pplx::task<web::json::value> KeyIDClient::SaveProfile(std::wstring entityID, std
 pplx::task<web::json::value> KeyIDClient::RemoveProfile(std::wstring entityID, std::wstring tsData, std::wstring sessionID)
 {
 	// get a removal token
-	return service->RemoveToken(entityID, tsData).then([=](http_response response)
+	return service->RemoveToken(entityID, tsData)
+	.then([=](http_response response)
 	{
 		json::value data = ParseResponse(response);
 
@@ -109,7 +124,7 @@ pplx::task<web::json::value> KeyIDClient::EvaluateProfile(std::wstring entityID,
 		json::value data = ParseResponse(response);
 
 		// return early if profile does not exist
-		if (wcscmp(data[L"Error"].as_string().c_str(), L"EntityID does not exist.") == 0)
+		if (data[L"Error"].as_string() == L"EntityID does not exist.")
 		{
 			return data;
 		}
@@ -147,15 +162,16 @@ pplx::task<web::json::value> KeyIDClient::LoginPassiveEnrollment(std::wstring en
 	.then([=](json::value data)
 	{
 		// in base case that no profile exists save profile async and return early
-		if (wcscmp(data[L"Error"].as_string().c_str(), L"EntityID does not exist.") == 0 ||
-			wcscmp(data[L"Error"].as_string().c_str(), L"The profile has too little data for a valid evaluation.") == 0 ||
-			wcscmp(data[L"Error"].as_string().c_str(), L"The entry varied so much from the model, no evaluation is possible.") == 0)
+		if (data[L"Error"].as_string() == L"EntityID does not exist." ||
+			data[L"Error"].as_string() == L"The profile has too little data for a valid evaluation." ||
+			data[L"Error"].as_string() == L"The entry varied so much from the model, no evaluation is possible.")
 		{
 			return SaveProfile(entityID, tsData, sessionID)
 			.then([=](json::value saveData)
 			{
 				json::value evalData = data;
 				evalData[L"Match"] = json::value::boolean(true);
+				evalData[L"IsReady"] = json::value::boolean(false);
 				evalData[L"Confidence"] = json::value::number(100.0);
 				evalData[L"Fidelity"] = json::value::number(100.0);
 				return evalData;
@@ -175,6 +191,21 @@ pplx::task<web::json::value> KeyIDClient::LoginPassiveEnrollment(std::wstring en
 		}
 
 		//return pplx::create_task([data]()->json::value {return data; });
+		return pplx::task_from_result(data);
+	});
+}
+
+/// <summary>
+/// Returns profile information without modifying the profile.
+/// </summary>
+/// <param name="entityID">Profile to inspect.</param>
+/// <returns></returns>
+pplx::task<web::json::value> KeyIDClient::GetProfileInfo(std::wstring entityID)
+{
+	return service->GetProfileInfo(entityID)
+	.then([=](http_response response)
+	{
+		json::value data = ParseResponse(response);
 		return pplx::task_from_result(data);
 	});
 }
@@ -207,7 +238,7 @@ bool KeyIDClient::AlphaToBool(std::wstring input)
 {
 	std::transform(input.begin(), input.end(), input.begin(), ::toupper);
 
-	if (wcscmp(input.c_str(), L"TRUE") == 0)
+	if (input == L"TRUE")
 		return true;
 	else
 		return false;

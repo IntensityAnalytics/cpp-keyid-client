@@ -75,9 +75,11 @@ pplx::task<web::http::http_response> KeyIDService::Get(std::wstring path, web::j
 	uri_builder params(path);
 
 	// iterate json data and add to query parameters
-	for (auto &jsonTuple : data.as_object())
-	{
-		params.append_query(jsonTuple.first, jsonTuple.second.as_string());
+	if (!data.is_null()) {
+		for (auto &jsonTuple : data.as_object())
+		{
+			params.append_query(jsonTuple.first, jsonTuple.second.as_string());
+		}
 	}
 
 	return client->request(methods::GET, params.to_string());
@@ -227,8 +229,20 @@ pplx::task<web::http::http_response> KeyIDService::SaveProfile(std::wstring enti
 	data[L"Action"] = json::value::string(L"v2");
 	data[L"Statistics"] = json::value::string(L"extended");
 
-	if (wcscmp(code.c_str(), L"") == 0)
+	if (code == L"")
 		data[L"Code"] = json::value::string(code);
 
 	return Post(L"/profile", data);
+}
+
+/// <summary>
+/// Get profile information.
+/// </summary>
+/// <param name="entityID">Profile name.</param>
+/// <returns>REST request and response.</returns>
+pplx::task<web::http::http_response> KeyIDService::GetProfileInfo(std::wstring entityID)
+{
+	json::value data;
+	wstring path = L"/profile/" + entityID;
+	return Get(path, data);
 }
