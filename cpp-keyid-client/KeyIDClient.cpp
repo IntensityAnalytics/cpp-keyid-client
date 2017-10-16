@@ -49,6 +49,7 @@ void KeyIDClient::SetSettings(KeyIDSettings settings)
 /// <returns>JSON value (task)</returns>
 pplx::task<web::json::value> KeyIDClient::SaveProfile(std::wstring entityID, std::wstring tsData, std::wstring sessionID)
 {
+	/*
 	// try to save profile without a token
 	return service->SaveProfile(entityID, tsData)
 	.then([=](http_response response)
@@ -75,6 +76,22 @@ pplx::task<web::json::value> KeyIDClient::SaveProfile(std::wstring entityID, std
 		}
 
 		return pplx::task_from_result(data);
+	});
+	*/
+
+	// get a save token
+	return service->SaveToken(entityID, tsData)
+		.then([=](http_response response)
+	{
+		json::value data = ParseResponse(response);
+		// try to save profile with a token
+		return service->SaveProfile(entityID, tsData, data[L"Token"].as_string());
+	})
+		.then([=](http_response response)
+	{
+		json::value data = ParseResponse(response);
+		//todo this isn't a task?
+		return data;
 	});
 }
 
