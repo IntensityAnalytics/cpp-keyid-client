@@ -123,8 +123,8 @@ pplx::task<web::json::value> KeyIDClient::EvaluateProfile(std::wstring entityID,
 	{
 		json::value data = ParseResponse(response);
 
-		// return early if profile does not exist
-		if (data[L"Error"].as_string() == L"EntityID does not exist.")
+		// return early if there is an error
+		if (data[L"Error"].as_string() != L"")
 		{
 			return data;
 		}
@@ -190,7 +190,6 @@ pplx::task<web::json::value> KeyIDClient::LoginPassiveEnrollment(std::wstring en
 			});
 		}
 
-		//return pplx::create_task([data]()->json::value {return data; });
 		return pplx::task_from_result(data);
 	});
 }
