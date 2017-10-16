@@ -94,12 +94,16 @@ pplx::task<web::json::value> KeyIDClient::RemoveProfile(std::wstring entityID, s
 		json::value data = ParseResponse(response);
 
 		// remove profile
-		return service->RemoveProfile(entityID, data[L"Token"].as_string())
-		.then([=](http_response response)
-		{
-			json::value data = ParseResponse(response);
+		if (data.has_field(L"Token")) {
+			return service->RemoveProfile(entityID, data[L"Token"].as_string())
+				.then([=](http_response response)
+			{
+				json::value data = ParseResponse(response);
+				return pplx::task_from_result(data);
+			});
+		}
+		else
 			return pplx::task_from_result(data);
-		});
 	});
 }
 
