@@ -56,7 +56,7 @@ pplx::task<web::json::value> KeyIDClient::SaveProfile(std::wstring entityID, std
 		json::value data = ParseResponse(response);
 
 		// token is required
-		if (data[L"Error"].as_string() != L"")
+		if (data[L"Error"].as_string() == L"New enrollment code required.")
 		{
 			// get a save token
 			return service->SaveToken(entityID, tsData)
@@ -94,12 +94,16 @@ pplx::task<web::json::value> KeyIDClient::RemoveProfile(std::wstring entityID, s
 		json::value data = ParseResponse(response);
 
 		// remove profile
-		return service->RemoveProfile(entityID, data[L"Token"].as_string())
-		.then([=](http_response response)
-		{
-			json::value data = ParseResponse(response);
+		if (data.has_field(L"Token")) {
+			return service->RemoveProfile(entityID, data[L"Token"].as_string())
+				.then([=](http_response response)
+			{
+				json::value data = ParseResponse(response);
+				return pplx::task_from_result(data);
+			});
+		}
+		else
 			return pplx::task_from_result(data);
-		});
 	});
 }
 
@@ -123,26 +127,24 @@ pplx::task<web::json::value> KeyIDClient::EvaluateProfile(std::wstring entityID,
 	{
 		json::value data = ParseResponse(response);
 
-		// return early if profile does not exist
-		if (data[L"Error"].as_string() == L"EntityID does not exist.")
+		// check for error before continuing
+		if (data[L"Error"].as_string() == L"")
 		{
-			return data;
-		}
+			// coerce string to boolean
+			data[L"Match"] = json::value::boolean(AlphaToBool(data[L"Match"].as_string()));
+			data[L"IsReady"] = json::value::boolean(AlphaToBool(data[L"IsReady"].as_string()));
 
-		// coerce string to boolean
-		data[L"Match"] = json::value::boolean(AlphaToBool(data[L"Match"].as_string()));
-		data[L"IsReady"] = json::value::boolean(AlphaToBool(data[L"IsReady"].as_string()));
-
-		// set match to true and return early if using passive validation
-		if (settings.passiveValidation)
-		{
-			data[L"Match"] = json::value::boolean(true);
-			return data;
-		}
-		// evaluate match value using custom threshold if enabled
-		else if (settings.customThreshold)
-		{
-			data[L"Match"] = json::value::boolean(EvalThreshold(data[L"Confidence"].as_double(), data[L"Fidelity"].as_double()));
+			// set match to true and return early if using passive validation
+			if (settings.passiveValidation)
+			{
+				data[L"Match"] = json::value::boolean(true);
+				return data;
+			}
+			// evaluate match value using custom threshold if enabled
+			else if (settings.customThreshold)
+			{
+				data[L"Match"] = json::value::boolean(EvalThreshold(data[L"Confidence"].as_double(), data[L"Fidelity"].as_double()));
+			}
 		}
 
 		return data;
@@ -160,7 +162,7 @@ pplx::task<web::json::value> KeyIDClient::LoginPassiveEnrollment(std::wstring en
 {
 	return EvaluateProfile(entityID, tsData, sessionID)
 	.then([=](json::value data)
-	{
+	{	
 		// in base case that no profile exists save profile async and return early
 		if (data[L"Error"].as_string() == L"EntityID does not exist." ||
 			data[L"Error"].as_string() == L"The profile has too little data for a valid evaluation." ||
@@ -179,7 +181,7 @@ pplx::task<web::json::value> KeyIDClient::LoginPassiveEnrollment(std::wstring en
 		}
 
 		// if profile is not ready save profile async and return early
-		if (data[L"IsReady"].as_bool() == false)
+		if (data[L"Error"].as_string() == L"" && data[L"IsReady"].as_bool() == false)
 		{
 			return SaveProfile(entityID, tsData, sessionID)
 			.then([=](json::value saveData)
@@ -190,7 +192,6 @@ pplx::task<web::json::value> KeyIDClient::LoginPassiveEnrollment(std::wstring en
 			});
 		}
 
-		//return pplx::create_task([data]()->json::value {return data; });
 		return pplx::task_from_result(data);
 	});
 }

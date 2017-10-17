@@ -195,7 +195,7 @@ pplx::task<web::http::http_response> KeyIDService::RemoveProfile(std::wstring en
 pplx::task<web::http::http_response> KeyIDService::SaveToken(std::wstring entityID, std::wstring tsData)
 {
 	json::value data;
-	data[L"Type"] = json::value::string(L"remove");
+	data[L"Type"] = json::value::string(L"enrollment");
 	data[L"Return"] = json::value::string(L"value");
 
 	return Get(L"/token/" + entityID, data)
@@ -229,7 +229,7 @@ pplx::task<web::http::http_response> KeyIDService::SaveProfile(std::wstring enti
 	data[L"Action"] = json::value::string(L"v2");
 	data[L"Statistics"] = json::value::string(L"extended");
 
-	if (code == L"")
+	if (code != L"")
 		data[L"Code"] = json::value::string(code);
 
 	return Post(L"/profile", data);
