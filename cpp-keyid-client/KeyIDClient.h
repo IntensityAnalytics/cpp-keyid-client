@@ -31,4 +31,5 @@ private:
 	bool AlphaToBool(std::wstring input);
 	long long DotNetTicks();
 	web::json::value ParseResponse(const web::http::http_response& response);
+	web::json::value ParseGetProfileResponse(const web::http::http_response & response);
 };

@@ -128,6 +128,7 @@ pplx::task<web::json::value> KeyIDClient::EvaluateProfile(std::wstring entityID,
 		json::value data = ParseResponse(response);
 
 		// check for error before continuing
+		// todo check "error" exists first?
 		if (data[L"Error"].as_string() == L"")
 		{
 			// coerce string to boolean
@@ -206,7 +207,7 @@ pplx::task<web::json::value> KeyIDClient::GetProfileInfo(std::wstring entityID)
 	return service->GetProfileInfo(entityID)
 	.then([=](http_response response)
 	{
-		json::value data = ParseResponse(response);
+		json::value data = ParseGetProfileResponse(response);
 		return pplx::task_from_result(data);
 	});
 }
@@ -268,6 +269,24 @@ web::json::value KeyIDClient::ParseResponse(const web::http::http_response& resp
 	if (response.status_code() == status_codes::OK)
 	{
 		return response.extract_json().get();
+	}
+	else
+	{
+		throw http_exception(L"HTTP response not 200 OK.");
+	}
+}
+
+/// <summary>
+/// Extracts a JSON value from a http_response
+/// </summary>
+/// <param name="response">HTTP response</param>
+/// <returns>JSON value</returns>
+web::json::value KeyIDClient::ParseGetProfileResponse(const web::http::http_response& response)
+{
+	if (response.status_code() == status_codes::OK)
+	{
+		json::value dataArray = response.extract_json().get();
+		return dataArray[0];
 	}
 	else
 	{
