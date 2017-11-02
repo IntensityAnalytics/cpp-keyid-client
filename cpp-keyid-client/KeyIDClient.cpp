@@ -55,6 +55,9 @@ pplx::task<web::json::value> KeyIDClient::SaveProfile(std::wstring entityID, std
 	{
 		json::value data = ParseResponse(response);
 
+		if (data[L"Error"].as_string() == L"Invalid license key.")
+			throw exception("Invalid license key.");
+
 		// token is required
 		if (data[L"Error"].as_string() == L"New enrollment code required.")
 		{
@@ -93,6 +96,9 @@ pplx::task<web::json::value> KeyIDClient::RemoveProfile(std::wstring entityID, s
 	{
 		json::value data = ParseResponse(response);
 
+		if (data[L"Error"].as_string() == L"Invalid license key.")
+			throw exception("Invalid license key.");
+
 		// remove profile
 		if (data.has_field(L"Token")) {
 			return service->RemoveProfile(entityID, data[L"Token"].as_string())
@@ -126,6 +132,9 @@ pplx::task<web::json::value> KeyIDClient::EvaluateProfile(std::wstring entityID,
 	.then([=](http_response response)
 	{
 		json::value data = ParseResponse(response);
+
+		if (data[L"Error"].as_string() == L"Invalid license key.")
+			throw exception("Invalid license key.");
 
 		// check for error before continuing
 		// todo check "error" exists first?
