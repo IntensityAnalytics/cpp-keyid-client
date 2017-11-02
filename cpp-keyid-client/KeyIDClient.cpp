@@ -285,8 +285,11 @@ web::json::value KeyIDClient::ParseGetProfileResponse(const web::http::http_resp
 {
 	if (response.status_code() == status_codes::OK)
 	{
-		json::value dataArray = response.extract_json().get();
-		return dataArray[0];
+		json::value data = response.extract_json().get();
+		if (data.is_array())
+			return data[0];
+		else
+			return data;
 	}
 	else
 	{
