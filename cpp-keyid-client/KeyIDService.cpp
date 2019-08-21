@@ -17,7 +17,7 @@ KeyIDService::KeyIDService(std::wstring url, std::wstring license, int timeoutMs
 {
 	this->url = url;
 	this->license = license;
-	client = new http_client(url);
+	client = new http_client(url);	
 }
 
 /// <summary>
@@ -54,14 +54,16 @@ web::json::value KeyIDService::encodeJSONProperties(web::json::value obj)
 /// <returns>REST request and response.</returns>
 pplx::task<web::http::http_response> KeyIDService::Post(std::wstring path, web::json::value data)
 {
-	data[L"License"] = json::value::string(license);
+	//data[L"License"] = json::value::string(license);
 	json::value dataEncoded = encodeJSONProperties(data);
 	wstring dataEncodedJSON = dataEncoded.serialize();
-
-	return client->request(methods::POST,
-						   path,
-						   L"=[" + dataEncodedJSON + L"]", 
-						   L"application/x-www-form-urlencoded");
+	
+	http_request req(methods::POST);
+	req.headers().set_content_type(L"application/x-www-form-urlencoded");
+	req.headers().add(header_names::authorization, L"Bearer " + license);
+	req.set_body(L"=[" + dataEncodedJSON + L"]", L"application/x-www-form-urlencoded");
+	req.set_request_uri(path);
+	return client->request(req);
 }
 
 /// <summary>
