@@ -17,7 +17,7 @@ KeyIDService::KeyIDService(std::wstring url, std::wstring license, int timeoutMs
 {
 	this->url = url;
 	this->license = license;
-	client = new http_client(url);	
+	client = std::make_shared<web::http::client::http_client>(url);
 }
 
 /// <summary>
@@ -25,7 +25,6 @@ KeyIDService::KeyIDService(std::wstring url, std::wstring license, int timeoutMs
 /// </summary>
 KeyIDService::~KeyIDService()
 {
-	delete client;
 }
 
 /// <summary>

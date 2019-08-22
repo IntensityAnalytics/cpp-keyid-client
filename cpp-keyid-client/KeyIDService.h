@@ -24,7 +24,7 @@ public:
 private:
 	std::wstring url;
 	std::wstring license;
-	web::http::client::http_client* client;
+	std::shared_ptr<web::http::client::http_client> client;
 
 	web::json::value encodeJSONProperties(web::json::value obj);
 	pplx::task<web::http::http_response> Post(std::wstring path, web::json::value data);
