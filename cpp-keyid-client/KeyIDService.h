@@ -20,6 +20,8 @@ public:
 	pplx::task<web::http::http_response> SaveToken(std::wstring entityID, std::wstring tsData);
 	pplx::task<web::http::http_response> SaveProfile(std::wstring entityID, std::wstring tsData, std::wstring code = L"");
 	pplx::task<web::http::http_response> GetProfileInfo(std::wstring entityID);
+	pplx::task<web::http::http_response> ErrorLog(std::wstring entityID, std::wstring message, std::wstring source, std::wstring machine);
+	pplx::task<web::http::http_response> Mistype(std::wstring entityID);
 
 private:
 	std::wstring url;

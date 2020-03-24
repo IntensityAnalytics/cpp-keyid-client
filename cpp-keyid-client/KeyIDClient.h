@@ -22,6 +22,8 @@ public:
 	pplx::task<web::json::value> EvaluateProfile(std::wstring entityID, std::wstring tsData, std::wstring sessionID = L"");
 	pplx::task<web::json::value> LoginPassiveEnrollment(std::wstring entityID, std::wstring tsData, std::wstring sessionID = L"");
 	pplx::task<web::json::value> GetProfileInfo(std::wstring entityID);
+	pplx::task<web::json::value> ErrorLog(std::wstring entityID, std::wstring message, std::wstring source, std::wstring machine);
+	pplx::task<web::json::value> Mistype(std::wstring entityID);
 
 private:
 	std::shared_ptr<KeyIDService> service;

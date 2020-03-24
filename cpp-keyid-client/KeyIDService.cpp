@@ -247,3 +247,33 @@ pplx::task<web::http::http_response> KeyIDService::GetProfileInfo(std::wstring e
 	wstring path = L"/profile/" + entityID;
 	return Get(path, data);
 }
+
+/// <summary>
+/// Write to server error log.
+/// </summary>
+/// <param name="entityID">Profile name.</param>
+/// <param name="message">Error message.</param>
+/// <param name="source">Source (application, DLL, etc.)</param>
+/// <param name="machine">Machine (IP address, machine GUID, etc.)</param>
+pplx::task<web::http::http_response> KeyIDService::ErrorLog(std::wstring entityID, std::wstring message, std::wstring source, std::wstring machine)
+{
+	json::value data;
+	data[L"EntityID"] = json::value::string(entityID);
+	data[L"Message"] = json::value::string(message);
+	data[L"Source"] = json::value::string(source);
+	data[L"Machine"] = json::value::string(machine);
+
+	return Post(L"/errorlog", data);
+}
+
+/// <summary>
+/// Notify server of a mistype.
+/// </summary>
+/// <param name="entityID">Profile name.</param>
+pplx::task<web::http::http_response> KeyIDService::Mistype(std::wstring entityID)
+{
+	json::value data;
+	data[L"EntityID"] = json::value::string(entityID);
+
+	return Post(L"/mistype", data);
+}

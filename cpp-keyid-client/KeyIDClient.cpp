@@ -222,6 +222,37 @@ pplx::task<web::json::value> KeyIDClient::GetProfileInfo(std::wstring entityID)
 }
 
 /// <summary>
+/// Write to server error log.
+/// </summary>
+/// <param name="entityID">Profile name.</param>
+/// <param name="message">Error message.</param>
+/// <param name="source">Source (application, DLL, etc.)</param>
+/// <param name="machine">Machine (IP address, machine GUID, etc.)</param>
+pplx::task<web::json::value> KeyIDClient::ErrorLog(std::wstring entityID, std::wstring message, std::wstring source, std::wstring machine)
+{
+	return service->ErrorLog(entityID, message, source, machine)
+		.then([=](http_response response)
+	{
+		json::value data = ParseResponse(response);
+		return pplx::task_from_result(data);
+	});
+}
+
+/// <summary>
+/// Notify server of a mistype.
+/// </summary>
+/// <param name="entityID">Profile name.</param>
+pplx::task<web::json::value> KeyIDClient::Mistype(std::wstring entityID)
+{
+	return service->Mistype(entityID)
+		.then([=](http_response response)
+	{
+		json::value data = ParseResponse(response);
+		return pplx::task_from_result(data);
+	});
+}
+
+/// <summary>
 /// Compares a given confidence and fidelity against pre-determined thresholds.
 /// </summary>
 /// <param name="confidence">KeyID evaluation confidence.</param>
