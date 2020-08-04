@@ -61,7 +61,7 @@ pplx::task<web::http::http_response> KeyIDService::Post(std::wstring path, web::
 	req.headers().set_content_type(L"application/x-www-form-urlencoded");
 	req.headers().add(header_names::authorization, L"Bearer " + license);
 	req.set_body(L"=[" + dataEncodedJSON + L"]", L"application/x-www-form-urlencoded");
-	req.set_request_uri(path);
+	req.set_request_uri(web::uri::encode_uri(path));
 	return client->request(req);
 }
 
@@ -73,8 +73,8 @@ pplx::task<web::http::http_response> KeyIDService::Post(std::wstring path, web::
 /// <returns>REST request and response.</returns>
 pplx::task<web::http::http_response> KeyIDService::Get(std::wstring path, web::json::value data)
 {
-	uri_builder params(path);
-
+	uri_builder params(web::uri::encode_uri(path));
+	//uri_builder params(path);
 	// iterate json data and add to query parameters
 	if (!data.is_null()) {
 		for (auto &jsonTuple : data.as_object())
@@ -176,13 +176,14 @@ pplx::task<web::http::http_response> KeyIDService::RemoveToken(std::wstring enti
 /// <param name="entityID">Profile name.</param>
 /// <param name="token">Profile removal security token.</param>
 /// <returns>REST request and response.</returns>
-pplx::task<web::http::http_response> KeyIDService::RemoveProfile(std::wstring entityID, std::wstring token)
+pplx::task<web::http::http_response> KeyIDService::RemoveProfile(std::wstring entityID, std::wstring token, std::wstring tsData)
 {
 	json::value data;
 	data[L"EntityID"] = json::value::string(entityID);
 	data[L"Code"] = json::value::string(token);
 	data[L"Action"] = json::value::string(L"remove");
 	data[L"Return"] = json::value::string(L"JSON");
+	data[L"ReturnValidation"] = json::value::string(tsData);
 
 	return Post(L"/profile", data);
 }

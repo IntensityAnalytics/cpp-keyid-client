@@ -16,7 +16,7 @@ public:
 	pplx::task<web::http::http_response> EvaluateSample(std::wstring entityID, std::wstring tsData, std::wstring nonce);
 	pplx::task<web::http::http_response> Nonce(long long nonceTime);
 	pplx::task<web::http::http_response> RemoveToken(std::wstring entityID, std::wstring tsData);
-	pplx::task<web::http::http_response> RemoveProfile(std::wstring entityID, std::wstring token);
+	pplx::task<web::http::http_response> RemoveProfile(std::wstring entityID, std::wstring token, std::wstring tsData);
 	pplx::task<web::http::http_response> SaveToken(std::wstring entityID, std::wstring tsData);
 	pplx::task<web::http::http_response> SaveProfile(std::wstring entityID, std::wstring tsData, std::wstring code = L"");
 	pplx::task<web::http::http_response> GetProfileInfo(std::wstring entityID);

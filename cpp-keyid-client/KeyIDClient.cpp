@@ -101,7 +101,7 @@ pplx::task<web::json::value> KeyIDClient::RemoveProfile(std::wstring entityID, s
 
 		// remove profile
 		if (data.has_field(L"Token")) {
-			return service->RemoveProfile(entityID, data[L"Token"].as_string())
+			return service->RemoveProfile(entityID, data[L"Token"].as_string(), tsData)
 				.then([=](http_response response)
 			{
 				json::value data = ParseResponse(response);
